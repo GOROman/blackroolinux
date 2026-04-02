@@ -1,0 +1,222 @@
+#
+# Automatically generated make config: don't edit
+#
+CONFIG_MIPS=y
+CONFIG_UCLINUX=y
+CONFIG_UID16=y
+
+#
+# Code maturity level options
+#
+CONFIG_EXPERIMENTAL=y
+
+#
+# Machine selection
+#
+CONFIG_PLAYSTATION=y
+# CONFIG_PSX_PIO_EXTENSION is not set
+#
+# PlayStation RAM Configuration
+#
+# CONFIG_PSX_2MB_RAM is not set
+# 16 MB has NO verified RAM_SIZE encoding - the register documents
+# 2/4/8 MB only. Use the runtime probe so the kernel measures what
+# is actually fitted instead of being told a number that may be a
+# lie (GR-004: a kernel that believes in memory the hardware does
+# not have corrupts silently).
+# The probe decides what the memory controller is told. This says how big
+# the machine is, which is a different question: it places the userspace
+# window and the PS-EXE stack, and those are baked in at link time where no
+# runtime probe can reach them.
+CONFIG_PSX_16MB_RAM=y
+CONFIG_PSX_RAM_AUTO=y
+# CONFIG_PSX_4MB_RAM is not set
+# CONFIG_PSX_8MB_RAM is not set
+# CONFIG_MCA is not set
+# CONFIG_SBUS is not set
+# CONFIG_ISA is not set
+# CONFIG_EISA is not set
+# CONFIG_PCI is not set
+# CONFIG_I8259 is not set
+
+#
+# Loadable module support
+#
+# CONFIG_MODULES is not set
+
+#
+# CPU selection
+#
+CONFIG_CPU_R3000=y
+# CONFIG_CPU_R6000 is not set
+# CONFIG_CPU_R4300 is not set
+# CONFIG_CPU_R4X00 is not set
+# CONFIG_CPU_R5000 is not set
+# CONFIG_CPU_R5432 is not set
+# CONFIG_CPU_RM7000 is not set
+# CONFIG_CPU_NEVADA is not set
+# CONFIG_CPU_R8000 is not set
+# CONFIG_CPU_R10000 is not set
+# CONFIG_CPU_MIPS32 is not set
+# CONFIG_CPU_ADVANCED is not set
+
+#
+# General setup
+#
+CONFIG_CPU_LITTLE_ENDIAN=y
+# CONFIG_MIPS_FPU_EMULATOR is not set
+# CONFIG_SYSVIPC is not set
+# CONFIG_BSD_PROCESS_ACCT is not set
+# CONFIG_SYSCTL is not set
+# CONFIG_KCORE_ELF is not set
+CONFIG_KCORE_AOUT=y
+# BLACKROO: userspace is ELF loaded by binfmt_fixed at a single fixed KUSEG
+# address (fs/binfmt_fixed.c). Nothing here is bFLT, so binfmt_flat is 4.6 KB
+# of a second loader that can never match a header. See docs/28.
+# CONFIG_BINFMT_FLAT is not set
+CONFIG_BINFMT_FIXED=y
+# Size of the fixed userspace window binfmt_fixed loads into, held back from
+# the page allocator at the top of RAM. Grown from 64 KB once the size pass
+# freed 94 KB of kernel text. See docs/28 and asm/blackroo-user.h - changing
+# this needs userland/blackroo.ld and every userspace binary rebuilt too.
+CONFIG_BLACKROO_USER_RESERVE_KB=1024
+# CONFIG_BINFMT_FLAT_SEPARATELY is not set
+# CONFIG_BINFMT_AOUT is not set
+# CONFIG_BINFMT_ELF is not set
+# CONFIG_BINFMT_MISC is not set
+# CONFIG_NET is not set
+
+#
+# Parallel port support
+#
+# CONFIG_PARPORT is not set
+# CONFIG_PCMCIA is not set
+
+#
+# Memory Technology Devices (MTD)
+#
+# CONFIG_MTD is not set
+
+#
+# Block devices
+#
+# CONFIG_BLK_DEV_FD is not set
+# CONFIG_BLK_DEV_LOOP is not set
+# Blackroo: RAM disk needed for initrd boot
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_SIZE=2048
+CONFIG_BLK_DEV_INITRD=y
+# CONFIG_BLK_DEV_BLKMEM is not set
+CONFIG_PSX_MEM_CARD=y
+CONFIG_PSX_LARGE_CARD=y
+
+#
+# Multi-device support (RAID and LVM)
+#
+# CONFIG_MD is not set
+
+#
+# ATA/IDE/MFM/RLL support
+#
+# CONFIG_IDE is not set
+# CONFIG_BLK_DEV_IDE_MODES is not set
+# CONFIG_BLK_DEV_HD is not set
+
+#
+# ISDN subsystem
+#
+
+#
+# Old CD-ROM drivers (not SCSI, not IDE)
+#
+# CONFIG_CD_NO_IDESCSI is not set
+
+#
+# PlayStation Character devices
+#
+
+#
+# File systems
+#
+# CONFIG_QUOTA is not set
+# CONFIG_AUTOFS_FS is not set
+# CONFIG_AUTOFS4_FS is not set
+# CONFIG_ADFS_FS is not set
+# CONFIG_AFFS_FS is not set
+# CONFIG_HFS_FS is not set
+# CONFIG_BFS_FS is not set
+# CONFIG_FAT_FS is not set
+# CONFIG_EFS_FS is not set
+# CONFIG_CRAMFS is not set
+# CONFIG_RAMFS is not set
+# CONFIG_ISO9660_FS is not set
+# CONFIG_MINIX_FS is not set
+# CONFIG_NTFS_FS is not set
+# CONFIG_HPFS_FS is not set
+# CONFIG_PROC_FS is not set
+# CONFIG_DEVFS_FS is not set
+# CONFIG_DEVPTS_FS is not set
+# CONFIG_QNX4FS_FS is not set
+# CONFIG_ROMFS_FS is not set
+CONFIG_EXT2_FS=y
+# CONFIG_SYSV_FS is not set
+# CONFIG_UDF_FS is not set
+# CONFIG_UFS_FS is not set
+# CONFIG_NCPFS_NLS is not set
+# CONFIG_SMB_FS is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+# CONFIG_SMB_NLS is not set
+# CONFIG_NLS is not set
+
+#
+# Console drivers
+#
+CONFIG_GPUPSX_CONSOLE=y
+# CONFIG_PC_KEYB is not set
+CONFIG_PSX_KEYB=y
+CONFIG_PSX_CDROM=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE_HIRES=y
+CONFIG_VT_CONSOLE=y
+CONFIG_SERIAL_PSX=y
+CONFIG_SERIAL_PSX_CONSOLE=y
+VT_SINGLE_DRIVER=y
+
+#
+# Generic character devices 2.4 links unconditionally.
+# Off on a 2 MB machine - see drivers/char/Makefile and docs/28 for what each
+# costs and why nothing here can use it.
+#
+# CONFIG_LEGACY_PTYS is not set
+# CONFIG_RAW_DRIVER is not set
+# CONFIG_MISC_DEVICES is not set
+# CONFIG_DEV_RANDOM is not set
+# CONFIG_VT_SCREEN_DEV is not set
+
+#
+# Sound
+#
+# CONFIG_SOUND is not set
+
+#
+# USB support
+#
+# CONFIG_USB is not set
+
+#
+# Input core support
+#
+# CONFIG_INPUT is not set
+
+#
+# Kernel hacking
+#
+CONFIG_CROSSCOMPILE=y
+# CONFIG_MAGIC_SYSRQ is not set
+# CONFIG_MIPS_UNCACHED is not set
+CONFIG_BLACKROO_MONITOR=y
