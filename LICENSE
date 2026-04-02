@@ -1,0 +1,13 @@
+This project contains code under multiple licenses:
+
+- Linux kernel source (blackroo/): GNU General Public License v2
+  See blackroo/COPYING for the full text.
+
+- Blackroo-original code: GNU General Public License v2
+  (To maintain compatibility with the kernel)
+
+- Build scripts and tools: GNU General Public License v2
+
+- Documentation: Creative Commons Attribution-ShareAlike 4.0
+
+See SOURCE-ATTRIBUTION.md for per-file attribution.

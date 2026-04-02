@@ -1,0 +1,32 @@
+
+/* BLACKROO: register_binfmt — was removed from mipsnommu exec.c
+ * Needed for BINFMT_ELF, BINFMT_FLAT, BINFMT_SCRIPT module_init */
+#include <linux/binfmts.h>
+
+static struct linux_binfmt *formats = NULL;
+
+int register_binfmt(struct linux_binfmt *fmt)
+{
+	struct linux_binfmt **tmp = &formats;
+	while (*tmp) {
+		if (fmt == *tmp)
+			return -EBUSY;
+		tmp = &(*tmp)->next;
+	}
+	fmt->next = formats;
+	formats = fmt;
+	return 0;
+}
+
+int unregister_binfmt(struct linux_binfmt *fmt)
+{
+	struct linux_binfmt **tmp = &formats;
+	while (*tmp) {
+		if (fmt == *tmp) {
+			*tmp = fmt->next;
+			return 0;
+		}
+		tmp = &(*tmp)->next;
+	}
+	return -EINVAL;
+}
