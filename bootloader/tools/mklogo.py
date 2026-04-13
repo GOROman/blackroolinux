@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""
+mklogo.py — turn the kernel's own Tux into a PS1 texture.
+
+blackroo/include/linux/linux_logo.h is Larry Ewing's 80x80 boot logo, 214
+colours, and it has been sitting in this tree the whole time: it is the logo
+of the very kernel kloader boots. Better to use that than to draw a penguin.
+
+The kernel stores it as palette indices offset by 0x20 (see the comment at the
+top of that header) plus three 214-entry colour tables. The PlayStation wants
+an 8bpp texture indexing a 256-entry CLUT of 15-bit BGR, so the conversion is
+mostly a re-packing:
+
+  pixel value v  ->  colour v - 0x20  ->  CLUT entry v
+
+Keeping the pixel bytes untouched and building a CLUT that is *also* offset by
+0x20 means no remapping pass and no chance of an off-by-one in it. Entries
+outside 0x20..0xF5 are left zero, which the GPU treats as transparent.
+
+Usage:  python3 bootloader/tools/mklogo.py  > bootloader/src/logo_data.c
+"""
+
+import re
+import sys
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+HEADER = os.path.join(HERE, "..", "..", "blackroo", "include", "linux",
+                      "linux_logo.h")
+
+W = H = 80
+OFFSET = 0x20
+
+
+def grab(text, name):
+    """First C array called `name`, as a list of ints."""
+    m = re.search(r"\b" + re.escape(name) + r"\s*\[\s*\]\s*[^=]*=\s*\{(.*?)\};",
+                  text, re.S)
+    if not m:
+        sys.exit("could not find %s[] in %s" % (name, HEADER))
+    return [int(x, 0) for x in re.findall(r"0x[0-9A-Fa-f]+|\d+", m.group(1))]
+
+
+def rgb555(r, g, b):
+    """PS1 CLUT entry: bits 0-4 R, 5-9 G, 10-14 B, bit 15 semi-transparency.
+
+    Zero means fully transparent, so a colour that rounds to black is nudged
+    to the darkest non-zero value - otherwise Tux's own black loses his
+    outline and his eyes."""
+    v = ((b >> 3) << 10) | ((g >> 3) << 5) | (r >> 3)
+    return v if v else 0x0421
+
+
+def main():
+    text = open(HEADER, encoding="latin1").read()
+
+    red = grab(text, "linux_logo_red")
+    green = grab(text, "linux_logo_green")
+    blue = grab(text, "linux_logo_blue")
+    pix = grab(text, "linux_logo")
+
+    if not (len(red) == len(green) == len(blue)):
+        sys.exit("palette tables disagree: %d/%d/%d"
+                 % (len(red), len(green), len(blue)))
+    if len(pix) != W * H:
+        sys.exit("expected %d pixels, found %d" % (W * H, len(pix)))
+
+    ncol = len(red)
+
+    clut = [0] * 256
+    for i in range(ncol):
+        slot = OFFSET + i
+        if slot < 256:
+            clut[slot] = rgb555(red[i], green[i], blue[i])
+
+    # Lift Tux off his background.
+    #
+    # The classic logo is not on a flat colour - it is a grey swirl, so
+    # zeroing one palette entry only punches speckles in it. Instead, flood
+    # fill inward from the border through pixels whose colour actually occurs
+    # on the border, and rewrite those to index 0, which the CLUT leaves
+    # transparent.
+    #
+    # Connectivity is what makes this safe: Tux's white belly is a similar
+    # grey-white to parts of the swirl, but his black outline separates it
+    # from the edge, so the fill cannot reach it.
+    bg_colours = set()
+    for x in range(W):
+        bg_colours.add(pix[x])
+        bg_colours.add(pix[(H - 1) * W + x])
+    for y in range(H):
+        bg_colours.add(pix[y * W])
+        bg_colours.add(pix[y * W + W - 1])
+
+    seen = bytearray(W * H)
+    stack = [x for x in range(W)] + [(H - 1) * W + x for x in range(W)]
+    stack += [y * W for y in range(H)] + [y * W + W - 1 for y in range(H)]
+
+    filled = 0
+    while stack:
+        i = stack.pop()
+        if seen[i] or pix[i] not in bg_colours:
+            continue
+        seen[i] = 1
+        filled += 1
+        x, y = i % W, i // W
+        if x > 0:     stack.append(i - 1)
+        if x < W - 1: stack.append(i + 1)
+        if y > 0:     stack.append(i - W)
+        if y < H - 1: stack.append(i + W)
+
+    # A few specks of swirl are left: pixels whose colour never occurs on the
+    # border, so the fill could not travel through them. Anything almost
+    # entirely surrounded by background is background too. Repeat until it
+    # settles - a speck two pixels across needs two passes.
+    for _ in range(8):
+        changed = 0
+        for i in range(W * H):
+            if seen[i]:
+                continue
+            x, y = i % W, i // W
+            n = 0
+            if x == 0 or seen[i - 1]:     n += 1
+            if x == W - 1 or seen[i + 1]: n += 1
+            if y == 0 or seen[i - W]:     n += 1
+            if y == H - 1 or seen[i + W]: n += 1
+            if n == 4:
+                seen[i] = 1
+                filled += 1
+                changed = 1
+        if not changed:
+            break
+
+    for i in range(W * H):
+        if seen[i]:
+            pix[i] = 0
+    clut[0] = 0
+
+    bg = filled
+
+    out = sys.stdout
+    out.write("/*\n")
+    out.write(" * logo_data.c - GENERATED by bootloader/tools/mklogo.py. "
+              "Do not edit.\n")
+    out.write(" *\n")
+    out.write(" * The Linux boot logo, 80x80, %d colours, from this tree's own\n"
+              % ncol)
+    out.write(" * blackroo/include/linux/linux_logo.h.\n")
+    out.write(" *\n")
+    out.write(" * Copyright (C) 1996 Larry Ewing <lewing@isc.tamu.edu>\n")
+    out.write(" * Copyright (C) 1996,1998 Jakub Jelinek <jj@sunsite.mff.cuni.cz>\n")
+    out.write(" *\n")
+    out.write(" * Pixel bytes are the kernel's, untouched: a pixel of value v\n")
+    out.write(" * selects CLUT entry v, and the CLUT carries the same 0x%02X\n"
+              % OFFSET)
+    out.write(" * offset the kernel uses. The swirled background has been flood\n")
+    out.write(" * filled from the border to index 0, which the GPU draws as\n")
+    out.write(" * transparent, so Tux sits on the menu and not in a box.\n")
+    out.write(" */\n\n")
+    out.write("#include \"logo.h\"\n\n")
+    out.write("const unsigned short logo_clut[LOGO_CLUT_LEN] = {\n")
+    for i in range(0, 256, 8):
+        out.write("    " + ", ".join("0x%04X" % c for c in clut[i:i + 8]) + ",\n")
+    out.write("};\n\n")
+    out.write("const unsigned char logo_pix[LOGO_W * LOGO_H] = {\n")
+    for i in range(0, len(pix), 16):
+        out.write("    " + ", ".join("0x%02X" % p for p in pix[i:i + 16]) + ",\n")
+    out.write("};\n")
+
+    sys.stderr.write("logo: %dx%d, %d colours, %d of %d pixels flood-filled "
+                     "transparent (%d%%)\n"
+                     % (W, H, ncol, bg, W * H, 100 * bg // (W * H)))
+
+
+if __name__ == "__main__":
+    main()

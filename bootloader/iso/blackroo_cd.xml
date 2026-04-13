@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    blackroo_cd.xml — mkpsxiso project for Blackroo Linux boot CD
+
+    This creates a PS1 CD-ROM image containing kernel PS-EXE files
+    that the Blackroo bootloader can load via "Boot from CD-ROM".
+
+    The bootloader is already running (via FreePSXBoot or cheat cart),
+    so we don't need Sony's license data or a bootable PS-EXE on the
+    disc. We just need a readable ISO9660 filesystem.
+
+    Usage:
+      mkpsxiso -y -o blackroo.bin bootloader/iso/blackroo_cd.xml
+
+    Attribution: New Blackroo work (2026, GPL v2)
+-->
+
+<iso_project
+    image_name="blackroo.bin"
+    cue_sheet="blackroo.cue"
+    no_xa="0">
+
+    <track type="data">
+
+        <!-- Volume descriptor -->
+        <identifiers
+            system       ="PLAYSTATION"
+            application  ="BLACKROO LINUX"
+            volume       ="BLACKROO"
+            volume_set   ="BLACKROO"
+            publisher    ="CHELSON AITCHESON"
+            data_preparer="MKPSXISO"
+        />
+
+        <!--
+            We use a dummy license file since we're not booting
+            from this disc. The bootloader reads files after it's
+            already running. mkpsxiso requires this element but
+            will work with an empty/dummy license.
+        -->
+        <license file="dummy.dat" />
+
+        <!-- Directory tree on the disc -->
+        <directory_tree>
+
+            <!-- Kernel files — the bootloader searches for these -->
+            <file name="KERNEL.EXE"  source="../../output/kernel+initrd.exe" />
+            <file name="LINUX.EXE"   source="../../output/kernel_mmu.exe" />
+
+            <!-- Also include the raw kernel without initrd -->
+            <file name="KERNEL2.EXE" source="../../output/kernel.exe" />
+
+            <!-- Include the bootloader itself for reference -->
+            <file name="BOOT.EXE"    source="../../output/bootloader.exe" />
+
+        </directory_tree>
+
+    </track>
+
+</iso_project>
