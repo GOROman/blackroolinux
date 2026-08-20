@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    blackroo_cd.xml — Blackroo Linux boot CD (mkpsxiso 2.20 project)
+
+    Produces a PS1-bootable ISO9660/CD-XA disc:
+
+      SYSTEM.CNF     -> BOOT=cdrom:\BLACKROO.EXE;1
+      BLACKROO.EXE   -> kloader (boot menu / serial shell)
+      KERNEL.EXE     -> Linux kernel + embedded initrd   (needs 8MB console)
+      LINUX.EXE      -> Linux kernel, no initrd          (fits 2MB console)
+
+    The BIOS loads and runs BLACKROO.EXE straight off the disc — no
+    UniROM, no FreePSXBoot, no serial upload needed to reach the menu.
+
+    Build:  ./iso/build-iso.sh          (or)
+            mkpsxiso -y -o output/blackroo.bin -c output/blackroo.cue iso/blackroo_cd.xml
+
+    Attribution: New Blackroo work (2026, GPL v2)
+-->
+
+<iso_project
+    image_name="../output/blackroo-kloader.bin"
+    cue_sheet="../output/blackroo-kloader.cue">
+
+    <track type="data">
+
+        <identifiers
+            system       ="PLAYSTATION"
+            application  ="PLAYSTATION"
+            volume       ="BLACKROO"
+            volume_set   ="BLACKROO"
+            publisher    ="CHELSON AITCHESON"
+            data_preparer="MKPSXISO"
+        />
+
+        <!--
+            License area (first 16 sectors). dummy license.dat is all
+            zeroes: fine for emulators and modchipped consoles, and the
+            region string is what an unmodded BIOS would check.
+            Substitute a real LICENSExx.DAT here if you have one.
+        -->
+        <license file="LICENSEE.DAT" />
+
+        <directory_tree>
+
+            <!-- BIOS reads this first -->
+            <file name="SYSTEM.CNF"   type="data" source="SYSTEM.CNF" />
+
+            <!-- First stage: our own bootloader / menu -->
+            <file name="BLACKROO.EXE" type="data" source="../output/bootloader.exe" />
+
+            <!-- Kernel payloads the menu can chain-load -->
+            <file name="KERNEL.EXE"   type="data" source="../output/blackroo.exe" />
+            <file name="LINUX.EXE"    type="data" source="../output/blackroo_noinitrd.exe" />
+
+            <!--
+                The root filesystem, for root=/dev/psxcd.
+
+                drivers/block/psxcd.c finds this by name: it reads the volume
+                descriptor at LBA 16, walks this directory, and takes the
+                extent. So the LBA is NOT baked into the kernel and this disc
+                can be rebuilt without rebuilding Linux (docs/24 §5.5 B).
+
+                Built by scripts/make-cdroot.sh with -b 2048, which psxcd's
+                2048-byte hardsect_size requires (docs/24 §5.3).
+            -->
+            <file name="ROOT.IMG"     type="data" source="../output/ROOT.IMG" />
+            <!--
+                GPL v2 section 3(a): the complete corresponding source code,
+                shipped WITH the binaries rather than promised. Built by
+                scripts/make-source-dist.sh, which refuses to run if any
+                compiled binary has crept into the archive.
+
+                8.3 names because this is ISO9660 level 1 - a PlayStation is
+                not going to read "blackroo-0.5.0-source.tar.gz".
+            -->
+            <file name="SOURCE.TGZ"   type="data" source="../output/SOURCE.TGZ" />
+            <file name="COPYING.TXT"  type="data" source="../output/COPYING.TXT" />
+            <file name="README.TXT"   type="data" source="README.TXT" />
+
+            <!--
+                Pad the disc out. Without this the image is ~800 sectors
+                (about 11 seconds of disc) — fine in an emulator, a marginal
+                thing to ask a 1995 CD drive to lock onto. ~18 MB.
+            -->
+            <dummy sectors="8000" />
+
+        </directory_tree>
+
+    </track>
+
+</iso_project>
