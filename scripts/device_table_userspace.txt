@@ -1,0 +1,13 @@
+# Device table for the userspace initrd (genext2fs -D).
+# <path>      <type> <mode> <uid> <gid> <major> <minor> <start> <inc> <count>
+/dev          d    755   0   0     -       -       -       -       -
+# /dev/console is the VT since the vt_console_driver name fix: GPU + the
+# SIO1 mirror in do_con_write(). This is what brsh writes to.
+/dev/console  c    600   0   0     5       1       -       -       -
+# Polled SIO1 char device, no tty layer. brsh reads from this - there is no
+# keyboard driver yet, so /dev/console has no input side.
+/dev/brcon    c    600   0   0    60       0       -       -       -
+/dev/ram0     b    660   0   0     1       0       -       -       -
+/dev/tty0     c    600   0   0     4       0       -       -       -
+/dev/tty1     c    600   0   0     4       1       -       -       -
+/dev/null     c    666   0   0     1       3       -       -       -
