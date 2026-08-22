@@ -1,0 +1,87 @@
+Blackroo Linux - the keyboard driver: typing on the PlayStation itself
+======================================================================
+Captured 2026-08-21 on the PAL SCPH-750x, build #68.
+
+An Apple Bluetooth keyboard -> BlueRetro (multitap port B, SIO0 address 0x02)
+-> drivers/char/psxkbd.c -> handle_scancode() -> the VT -> the GPU.
+
+No host PC involved in the input path. The serial link only carries the log.
+
+--- the driver finds it by itself ---
+
+psxkbd: Lightspan keyboard driver, scanning SIO0 (both ports, multitap floors 01-04)
+psxkbd: keyboard on port 1, address 02 (multitap floor)
+
+The adapter is behind a multitap, so it answers 0x01+floor rather than 0x01.
+Rather than be told where it is, the driver sweeps both ports and all four
+floors at its idle rate and locks on. See GR-013.
+
+--- the shell, driven from the keyboard ---
+
+BLACKROO: /dev/console -> console "tty0" = tty device 4:1
+brsh: console fd 0x00000004
+brsh: userspace is alive on the PlayStation.
+
+$ OI
+brsh: unknown command: OI
+$ PERFECT
+brsh: unknown command: PERFECT
+$ hello well
+brsh: unknown command: hello well
+
+Capitals mean the VT keymap is handling shift, so this is going through the
+real console keyboard layer, not a private path.
+
+"hello well" is the deliberate test, not a greeting: both doubled letters
+survive. Before the de-duplication was removed this came through as "helo wel".
+
+--- what the protocol turned out to be ---
+
+Two hypotheses fitted the symptoms and wanted opposite fixes, so the driver was
+made to dump raw frames and the question was settled with data. Over one
+session of typing:
+
+   nn=0:             244   nothing happened
+   nn=1: 59          237   right shift MAKE
+   nn=2: f0 59        26   right shift BREAK
+   nn=1: 44 / f0 44   13   'o' down / up
+   nn=1: 29 / f0 29   14   space down / up
+   nn=1: 5a / f0 5a   14   enter down / up
+
+Make and break codes, one event per frame, nn=0 when idle. An EVENT stream,
+not a report of which keys are currently held.
+
+That matters because the driver had been de-duplicating identical consecutive
+frames, on the assumption that the adapter re-served its last report. It does
+not. Two identical frames are two genuine keypresses, so the de-duplication was
+eating real input - typing "hello" produced "helo".
+
+The unbroken column of shift-makes that prompted the de-duplication in the
+first place was ordinary typematic autorepeat: 237 makes against 26 releases is
+a key being held. The console layer already handles that. What made it look
+pathological was the debug printk, not the events.
+
+Two further consequences of the trace:
+
+  - The adapter sends at most one event per frame and does not queue, so an
+    event between two polls is lost. The poll rate went from 50 Hz to 100 Hz to
+    halve that window.
+  - Idle frames outnumber busy ones even while typing (244 to 237), so a frame
+    now stops as soon as nn says there is nothing to collect: five bytes
+    instead of fifteen. That is what makes 100 Hz affordable.
+
+--- the memory cards are unaffected ---
+
+PSX joined card: driver initialized: 8 cards joined, total size = 381 Kbytes
+
+Keyboard and cards share one SIO0 bus, told apart only by the address byte
+(0x01+floor vs 0x81+floor). psx_sio0_trylock() in bu.c arbitrates; the keyboard
+skips a sample rather than corrupt a card transfer, and bu_probing keeps it off
+the bus entirely during the boot detection sweep.
+
+--- also verified in this run ---
+
+PSX: 1984 KB RAM configured (reg=0x8fbf0888)
+
+The 2 MB config, after build.sh had silently been producing 8 MB kernels for a
+2 MB console all session. See GR-015.

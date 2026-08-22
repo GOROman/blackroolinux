@@ -1,0 +1,24 @@
+Blackroo: bu.c block-layer WRITE test via BRMON blkw
+2026-08-26T18:49:38
+------------------------------------------------------------
+blackroo> 
+
+blackroo> blackroo> 
+
+blackroo> blkwblackroo> blkw
+
+usage: blkw <major> <minor> <block> [size] yes   (hex)usage: blkw <major> <minor> <block> [size] yes   (hex)
+
+  WRITES to the device and DESTROYS that block.  WRITES to the device and DESTROYS that block.
+
+  d0 0 100 ... yes   /dev/bul block 256  d0 0 100 ... yes   /dev/bul block 256
+
+  Block 0 is refused: it holds the card magic.  Block 0 is refused: it holds the card magic.
+
+blackroo> blackroo> 
+
+blackroo> blkw d0 0 100 400 yesblackroo> blkw d0 0 100 400 yes
+
+write test: dev 208:0 block 256, 1024 bytes, pattern a5write test: dev 208:0 block 256, 1024 bytes, pattern a5
+
+

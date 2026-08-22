@@ -1,0 +1,29 @@
+.PSX joined card: card in slot 2 not found
+PSX joined card: detecting card in slot 3 ...
+PSX joined card: 127 Kbytes card found in slot 3
+PSX joined card: detecting card in slot 4 ...
+PSX joined card: card in slot 4 not found
+PSX joined card: detecting card in slot 5 ...
+PSX joined card: 127 Kbytes card found in slot 5
+PSX joined card: detecting card in slot 6 ...
+PSX joined card: card in slot 6 not found
+PSX joined card: detecting card in slot 7 ...
+PSX joined card: card in slot 7 not found
+PSX joined card: detecting card in slot 8 ...
+PSX joined card: card in slot 8 not found
+PSX joined card: driver initialized: 8 cards joined, total size = 381 Kbytes
+Starting kswapd v1.8
+PSX serial port driver
+
+
+
+
+  ####  BLACKROO MONITOR  ####  ####  BLACKROO MONITOR  ####
+
+  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)
+
+  Type 'help' for commands, 'cont' to resume booting.  Type 'help' for commands, 'cont' to resume booting.
+
+
+
+blackroo> 

@@ -1,0 +1,68 @@
+PSX: 2048 KB RAM configured (reg=0x8fbf0888)
+Loading R[23]00 MMU routines.
+CPU revision is: 00000002
+Primary instruction cache 4kb, linesize 4 bytes
+Primary data cache 1kb, linesize 4 bytes
+Linux version 2.4.0.0pre0 (chelson@nzl1) (gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)) #31 Fri Aug 21 10:00:38 AM AEST 2026
+Determined physical RAM map:
+ memory: 00200000 @ 00000000 (usable)
+No initrd found (checked at 0x0016aff8, magic=0x00000000)
+BLACKROO MEMORY MAP:
+  _ftext  = 0x00090000 (kernel code start)
+  _etext  = 0x00136af0 (kernel code end)
+  _fdata  = 0x00144150 (kernel data start)
+  _edata  = 0x0014b760 (kernel data end / BSS start)
+  _end    = 0x0016ac90 (BSS end)
+  max_pfn = 0x00200000 (RAM end)
+  initrd  = 0x00000000 - 0x00000000 (0 bytes)
+On node 0 totalpages: 512
+zone(0): 512 pages.
+zone(1): 0 pages.
+zone(2): 0 pages.
+Kernel command line: brmon console=ttyS0,115200 console=tty0
+Console: mono PSXGPU console 78x21
+Calibrating delay loop... 32.56 BogoMIPS
+Memory: 556k/2048k available (666k kernel code, 1492k reserved, 29k data, 40k init)
+Dentry-cache hash table entries: 512 (order: 0, 4096 bytes)
+Buffer-cache hash table entries: 1024 (order: 0, 4096 bytes)
+Page-cache hash table entries: 1024 (order: 0, 4096 bytes)
+Inode-cache hash table entries: 512 (order: 0, 4096 bytes)
+Checking for 'wait' instruction...  unavailable.
+POSIX conformance testing by UNIFIX
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+ERROR<4>initialize_kbd: Keyboard failed self test
+PSX SIO console enable 
+RAMDISK driver initialized: 16 RAM disks of 2048K size 1024 blocksize
+PSX joined card: detecting card in slot 1 ...
+PSX joined card: 127 Kbytes card found in slot 1
+PSX joined card: detecting card in slot 2 ...
+PSX joined card: card in slot 2 not found
+PSX joined card: detecting card in slot 3 ...
+PSX joined card: Bad card sequence - found 2 instead 1
+PSX joined card: detecting card in slot 4 ...
+PSX joined card: card in slot 4 not found
+PSX joined card: detecting card in slot 5 ...
+PSX joined card: card in slot 5 not found
+PSX joined card: detecting card in slot 6 ...
+PSX joined card: card in slot 6 not found
+PSX joined card: detecting card in slot 7 ...
+PSX joined card: card in slot 7 not found
+PSX joined card: detecting card in slot 8 ...
+PSX joined card: card in slot 8 not found
+PSX joined card: driver initialized: 8 cards joined, total size = 127 Kbytes
+Starting kswapd v1.8
+PSX serial port driver
+
+
+
+
+  ####  BLACKROO MONITOR  ####  ####  BLACKROO MONITOR  ####
+
+  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)
+
+  Type 'help' for commands, 'cont' to resume booting.  Type 'help' for commands, 'cont' to resume booting.
+
+
+
+blackroo> 

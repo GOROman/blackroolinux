@@ -1,0 +1,160 @@
+Blackroo Linux - reading a CD-ROM sector on the PlayStation
+===========================================================
+Captured 2026-08-25 on the PAL SCPH-750x. BRMON `cd` command, build with
+drivers/video + arch/mipsnommu/ps/brmon.c cmd_cd().
+
+docs/24-CDROM-DRIVER-RESEARCH.md opens by noting that no Linux or BSD port of
+the PS1 has ever had a working CD driver. This is the first sector.
+
+Polled, PIO, no DMA and no interrupt handler - the bring-up shape docs/24 4.5
+asks for: "a brmon command that reads one sector by hand proves the command/IRQ
+path without also proving DMA." The CD interrupt is masked out of I_MASK for
+the duration; HINTSTS is the controller's own register and latches anyway.
+
+Worked first time.
+
+##### cd #####
+cdblackroo> cd
+CD-ROM: HSTS 39  bank 1 PRMWRDY RSLRRDY
+  HINTSTS 0   BUS_CFG 00020943  COM_DELAY 00001325
+  initialised: no
+  cd init          spin up and configure the drive
+  cd stat          Getstat (Nop)
+  cd rd <lba>      read one sector and dump it
+  cd id            drive firmware version (Test 20h)
+blackroo> 
+##### cd init #####
+cd initblackroo> cd init
+initialising CD-ROM (polled, no interrupts) ...
+  Nop -> INT3, 1 result byte(s)
+  stat 02: MotorOn
+  Init -> INT3
+  Init complete -> INT2
+  Demute -> INT3
+  Setmode 80 -> INT3
+  ready
+blackroo> 
+##### cd stat #####
+cd statblackroo> cd stat
+  Nop -> INT3, 1 byte(s)
+  stat 02: MotorOn
+blackroo> 
+##### cd id #####
+cd idblackroo> cd id
+  Test 20 -> INT3: 98 06 10 c3
+blackroo> 
+##### cd rd 10 #####
+cd rd 10blackroo> cd rd 10
+  LBA 16 -> MSF 00:02:16 (BCD)
+  read OK
+  0000: 01 43 44 30 30 31 01 00 50 4c 41 59 53 54 41 54  |.CD001..PLAYSTAT|
+  0010: 49 4f 4e 20 20 20 20 20 20 20 20 20 20 20 20 20  |ION             |
+  0020: 20 20 20 20 20 20 20 20 42 4c 41 43 4b 52 4f 4f  |        BLACKROO|
+  0030: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20  |                |
+  0040: 20 20 20 20 20 20 20 20 00 00 00 00 00 00 00 00  |        ........|
+  0050: c0 22 00 00 00 00 22 c0 00 00 00 00 00 00 00 00  |."....".........|
+  0060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+  0070: 00 00 00 00 00 00 00 00 01 00 00 01 01 00 00 01  |................|
+  "CD001" - this is a real ISO9660 volume descriptor. The path works.
+blackroo> 
+=== END ===
+
+--- what this proves ---
+
+  * The command/response protocol: Nop, Init, Demute, Setmode, Setloc, ReadN,
+    Pause, Test - every one answered with the interrupt docs/24 predicted,
+    including Init's two-stage INT3-then-INT2.
+  * The LBA -> MSF conversion, in BCD, with the 150-frame lead-in. LBA 16
+    became MSF 00:02:16, which is exactly what docs/24 2.2 derived from the
+    disc image, and it returned sector 16 rather than some neighbour.
+  * 8-bit PIO reads of RDDATA. 2048 byte-loads, no DMA.
+  * The BFRD handshake in the documented order - request data, THEN
+    acknowledge - along with the BIOS's dummy accesses that nobody can explain.
+  * Setloc before every ReadN, so the Pause/ReadN duplicate-sector trap in
+    docs/24 2.3 never got a chance.
+
+  "CD001" at offset 1 is the ISO9660 primary volume descriptor magic; the
+  volume identifier reads BLACKROO, so this is our own disc being read by our
+  own code.
+
+--- measurements worth keeping ---
+
+  Drive firmware (Test 20h):  98 06 10 c3   -> 1998-06-10, version C3
+
+  Before `cd init` ran, the registers already held:
+      BUS_CFG   00020943    (what PSn00bSDK and the BIOS both write)
+      COM_DELAY 00001325
+
+  docs/24 1.6 records an open question here: psx-spx's "To init the CD" recipe
+  says COM_DELAY = 1325h while the BIOS trace on the same page says 132Ch. The
+  value found in place on this console is 1325h. cd_init() writes 132Ch anyway,
+  per PCSX-Redux's hardware-tested code, and reads work - so both appear
+  serviceable, at least at 2x with PIO.
+
+
+===================================================================
+DMA, same day
+===================================================================
+
+PIO proved the protocol; DMA is what the block driver will actually use.
+docs/24 4.5: 0.36 ms a sector against several for a byte loop, and the drive
+holds only 2-3 sectors with no overrun flag, so the copy loop is exactly where
+sectors get silently dropped.
+
+  blackroo> cd cmp 10
+    PIO read ...   LBA 16 -> MSF 00:02:16 (BCD)
+    DMA read ...   LBA 16 -> MSF 00:02:16 (BCD)
+    PIO vs DMA: 0 of 2048 bytes differ
+
+  blackroo> cd cmp 20
+    LBA 32 -> MSF 00:02:32 (BCD)
+    PIO vs DMA: 0 of 2048 bytes differ
+
+  blackroo> cd dma 100
+    LBA 256 -> MSF 00:05:31 (BCD)
+    read OK (DMA)
+    0000: 28 0d 84 24 61 c8 03 08 00 00 00 00 15 00 01 3c
+
+Sector 256 is MIPS instructions - KERNEL.EXE on the disc - so this is DMA at an
+arbitrary LBA, not just the one sector that happens to be easy.
+
+    D3_MADR = address & 0x00ffffff
+    D3_BCR  = 0x00010200        1 block, 512 words
+    D3_CHCR = 0x11000000        burst, device -> RAM, start
+    poll CHCR bit 24
+
+--- the cache question, settled ---
+
+docs/24 1.7 marks this VERIFY because it decides whether every buffer in the
+block driver has to be touched uncached:
+
+  blackroo> cd kseg
+    buffer 0015758c (KUSEG) -> a015758c (KSEG1)
+    reading ONE byte uncached ...
+    ok, got 01 (KSEG0 says 01)
+    comparing all 2048 ...
+    0 byte(s) differ
+    -> no cache coherency problem; DMA buffers need no invalidate
+
+The R3000A has no writeback data cache - its 1 KB "D-cache" is wired as the
+scratchpad at 1F800000 - so a DMA into a cached buffer needs no invalidate.
+Confirmed rather than assumed.
+
+--- the hang that got us there ---
+
+The first version of this check hung the console outright, no output at all.
+The cause was arithmetic, not hardware, and it is worth writing down because it
+shapes the driver:
+
+  buffer KSEG0 0015758c -> KSEG1 2015758c     <- both wrong
+
+**This kernel is linked in KUSEG.** Its symbols are plain physical addresses
+(0015758c), not KSEG0 (8015758c), which `mem` also shows: "kernel text starts
+000900". So `addr | 0x20000000` does not produce a KSEG1 pointer - it produces
+a KUSEG address 537 MB into a machine with two, and reading it locks up. The
+uncached alias is `(addr & 0x1fffffff) | 0xa0000000`.
+
+The same fact is why DMA needs no address translation at all: MADR wants a
+physical address, and the buffer's own address already is one. No virt_to_bus,
+no bounce buffer - docs/24 4.5 predicted that, though for a slightly different
+reason than it gives.

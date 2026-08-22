@@ -1,0 +1,38 @@
+card format 4/5/6 with seq 0/1/2, 2026-08-26T21:04:49
+------------------------------------------------------------
+card format 4 yes 0blackroo> card format 4 yes 0
+formatting slot 4 as card #0 - erasing block 0
+  head: ff 08 5a 5d 00 00  (xx FLAG 5a 5d ..)
+  tail: 5c 5d 47 ff ff ff ff ff
+  end byte 47 = 'G' good
+  verify: id=00001234 size=1024 serial=b1acc400 number=0
+  OK ��� reboot and the driver should claim this card
+blackroo> blackroo>
+blackroo>
+card format 5 yes 1blackroo> card format 5 yes 1
+formatting slot 5 as card #1 - erasing block 0
+  head: ff 08 5a 5d 00 00  (xx FLAG 5a 5d ..)
+  tail: 5c 5d 47 ff ff ff ff ff
+  end byte 47 = 'G' good
+  verify: id=00001234 size=1024 serial=b1acc501 number=1
+  OK ��� reboot and the driver should claim this card
+blackroo> blackroo>
+blackroo>
+card format 6 yes 2blackroo> card format 6 yes 2
+formatting slot 6 as card #2 - erasing block 0
+  head: ff 08 5a 5d 00 00  (xx FLAG 5a 5d ..)
+  tail: 5c 5d 47 ff ff ff ff ff
+  end byte 47 = 'G' good
+  verify: id=00001234 size=1024 serial=b1acc602 number=2
+  OK ��� reboot and the driver should claim this card
+blackroo> blackroo>
+blackroo>
+cardblackroo> card
+joined device (major 208):
+  /dev/bul  0 KB
+individual cards (major 207):
+  not registered
+  card rd <block>          read a 1 KB block and dump it
+  card format <slot> yes   write the Blackroo header (ERASES)
+blackroo> blackroo>
+blackroo>

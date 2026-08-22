@@ -1,0 +1,11 @@
+Blackroo 0.5.0 Rootstock26, root=/dev/psxcd, 2026-08-26T07:39:43
+------------------------------------------------------------
+blackroo> 
+
+blackroo> blackroo> 
+
+blackroo> contblackroo> cont
+
+leaving monitorleaving monitor
+
+

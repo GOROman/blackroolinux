@@ -1,0 +1,67 @@
+Blackroo Linux — userspace shell (brsh) as pid 1
+================================================
+Captured 2026-08-21, PCSX-Redux (SIO1 raw TCP server on :6699),
+output/blackroo.exe build #52, loaded with -loadexe -run.
+
+This is the milestone capture docs/25-ROOT-MOUNT-JOURNEY.md describes; no
+capture had been filed for it, so the transcript in that document was the only
+record. Reproduced here from scratch in a fresh session.
+
+Reproduce:
+  1. ~/.config/pcsx-redux/pcsx.json -> emulator.Debug.{SIO1Server:true,
+     SIO1ServerPort:6699, SIO1Mode:1}      <-- NOTE: emulator.Debug, NOT emulator
+  2. PCSX-Redux-HEAD-x86_64.AppImage -loadexe output/blackroo.exe -run
+  3. connect to 127.0.0.1:6699, send "cont" to leave BRMON
+
+--- boot, after "cont" at the BRMON prompt ---
+contblackroo> cont
+
+leaving monitorleaving monitor
+
+RAMDISK: rd_open(minor 0)
+VFS: Mounted root (ext2 filesystem).
+Freeing unused PROM memory: 572k freed
+Freeing unused kernel memory: 40k freed
+BLACKROO: open(/dev/console) = 0
+
+ Blackroo Linux (MIPS MMU kernel)
+ ================================
+ Kernel:  2.4.0.0pre0 (mipsnommu)
+ Build:   #52 Fri Aug 21 05:25:37 PM AEST 2026
+ Init:    /bin/sh
+ Cmdline: brmon root=/dev/ram0 init=/bin/sh console=ttyS0,115200 console=tty0
+
+BLACKROO: exec /bin/sh ...
+binfmt_fixed: /bin/sh at 0x1f0000..0x1f0840, entry 0x1f03fc, stack 0x1fffb8
+brsh: calling open(/dev/brcon)
+brcon: open by pid 1
+brsh: open returned 0x00000003
+brsh: calling write() on that fd
+brcon: first write, 1 bytes
+
+brsh: first write survived
+brsh: userspace is alive on the PlayStation.
+  argc=0x00000001 argv0=init
+  a process, not the monitor.
+
+$ 
+
+
+--- interactive, typed into the running process ---
+help
+builtins: help, echo <x>, exit
+$ echo verified on 2026-08-21 by a fresh session
+verified on 2026-08-21 by a fresh session
+$ echo 1 2 3
+1 2 3
+$ 
+
+--- notes ---
+Card probing takes ~2.5 minutes in emulation (8 slots, each timing out); the
+kernel is not hung, it is waiting on absent hardware. On the console this is
+fast.
+
+Not yet reproduced on real hardware: output/blackroo.bin (the burned ISO) is
+from 08:03, older than the 17:25 kernel that contains binfmt_fixed/brcon/brsh,
+so the CD-R in existence does NOT carry this kernel. Hardware proof needs
+either a fresh burn or a serial upload of output/blackroo.exe to kloader.

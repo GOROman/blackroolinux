@@ -1,0 +1,101 @@
+Blackroo Linux - a keyboard on the PlayStation's SIO0 bus
+=========================================================
+Captured 2026-08-21 on the PAL SCPH-750x, BRMON build #55.
+
+An Apple aluminium Bluetooth keyboard (A1314) -> BlueRetro v25.04 hw1 universal
+on controller port 1, emulating the Lightspan PS1 keyboard -> SIO0 -> BRMON's
+`kbd` command. The real memory cards and multitap are on port 2 and unaffected
+(`/dev/bul` still reports 381 KB).
+
+No kernel driver involved: this is the polled probe in the monitor, which is
+the only place on this machine where SIO0 has no other users.
+
+--- the frame ---
+
+blackroo> kbd
+polling Lightspan keyboard, SIO0 slot 0, addr 01
+  15 bytes: ff 96 5a 00 00 00 00 00 00 00 00 00 00 00 00
+  keyboard present, 0 scancode byte(s)
+
+  ff = HiZ while the address byte goes out
+  96 = keyboard device id      (a pad answers 41, a memory card 5A 5D)
+  5a = ready marker
+  00 = nn, the count of valid scancode bytes: no keys held at that instant
+
+blackroo> sio0 0 01 10
+probing SIO0 slot 0 addr 01 (polled, no interrupts)
+  CTRL=0003 MODE=000d BAUD=0088 STAT=00014805
+  byte 0 TX 01 -> RX ff  ack=YES
+  byte 1 TX 42 -> RX 96  ack=YES
+  byte 2 TX 00 -> RX 5a  ack=YES
+  byte 3 TX 00 -> RX 00  ack=YES
+  byte 4 TX 00 -> RX 00  ack=YES
+  byte 5 TX 00 -> RX 00  ack=YES
+  byte 6 TX 00 -> RX 00  ack=YES
+  byte 7 TX 00 -> RX 00  ack=YES
+  byte 8 TX 00 -> RX 00  ack=YES
+  byte 9 TX 00 -> RX 00  ack=YES
+  byte 10 TX 00 -> RX 00  ack=YES
+  byte 11 TX 00 -> RX 00  ack=YES
+  byte 12 TX 00 -> RX 00  ack=YES
+  byte 13 TX 00 -> RX 00  ack=YES
+  byte 14 TX 00 -> RX 00  ack=no
+  byte 15 TX 00 -> RX ff  ack=no
+
+Every byte of the reply is acknowledged - the device is really there, not a
+floating bus reading back as 00.
+
+--- typing ---
+
+`kbd watch` while Chelson typed on the Apple keyboard. Raw PS/2 Scan Code
+Set 2, make and break codes, decoded live. Tail of the session, verbatim
+apart from BRMON's doubled echo being collapsed:
+
+  [up   44]
+  [down 2d] 'r'
+  [up   2d]
+  [down 42] 'k'
+  [up   42]
+  [down 43] 'i'
+  [down 31] 'n'
+  [up   43]
+  [down 34] 'g'
+  [up   31]
+  [down 29] ' '
+  [up   34]
+  [up   29]
+  [down 34] 'g'
+  [up   34]
+  [down 2d] 'r'
+  [up   2d]
+  [down 24] 'e'
+  [up   24]
+  [down 1c] 'a'
+  [down 2c] 't'
+  [up   1c]
+  [up   2c]
+  stopped.
+
+Note the overlap - `i` goes down before `o` comes up, `a` and `t` are both
+held at once. That is a real human typing, and it is why the Lightspan frame
+carries up to eleven scancode bytes rather than one: several make and break
+codes accumulate between two polls.
+
+--- what it took ---
+
+The adapter arrived flashed with a custom Apr-2023 build hardcoded to PS2
+(`# Hardcoded system : 17: PS2`), which could never answer a Lightspan probe -
+BlueRetro fixes the console at compile time and 0x96 is a PS1 device.
+Reflashed to v25.04 hw1 universal.
+
+Then it answered `41 5a` - a gamepad. BlueRetro maps a keyboard to pad buttons
+unless the output port's dev_mode is DEV_KB (`main/wired/ps_spi.c:975`), and
+that is normally set from the Web Bluetooth config app, which needs Chrome.
+Instead the config was patched directly in the ESP32's `storage` partition:
+two bytes, `out_cfg[0].dev_mode` 0 -> 2. See hardware/blueretro/README.md.
+
+Both intermediate states are worth recognising:
+
+  ff 41 5a ff ff 80 80 80 80 ...   gamepad - dev_mode is DEV_PAD
+  ff ff ff ff ff ...               nothing - no Bluetooth device connected
+  ff 96 5a nn ...                  keyboard - what we want

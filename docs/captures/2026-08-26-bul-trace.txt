@@ -1,0 +1,5 @@
+bu.c entry/defer trace, 2026-08-26T20:28:07
+------------------------------------------------------------
+blk d0 0 0blackroo> blk d0 0 0
+bread(major 208, minor 0, block 0, 1024)...
+psxkbd: keyboard on port 2, address 02 (multitap floor)

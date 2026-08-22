@@ -1,0 +1,15 @@
+ramdisk control vs memory cards, 2026-08-26T20:50:50
+------------------------------------------------------------
+blk 1 0 1blackroo> blk 1 0 1
+dev 1:0  blk_size=2048 KB  blksize=1024  hardsect=1024
+bread(major 1, minor 0, block 1, 1024)...
+0000: 40 00 00 00 70 00 00 00 05 00 00 00 2f 00 00 00  |@...p......./...|
+0010: 20 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  | ...............|
+0020: 00 20 00 00 00 20 00 00 40 00 00 00 00 00 00 00  |. ... ..@.......|
+0030: e2 bf 8e 6a 00 00 ff ff 53 ef 01 00 01 00 00 00  |...j....S.......|
+ext2 magic at 0x38: 53 ef  = EF53, a filesystem is here
+blackroo> blackroo>
+blackroo> psxkbd: keyboard on port 2, address 02 (multitap floor)
+blk d0 0 0blackroo> blk d0 0 0
+dev 208:0  blk_size=508 KB  blksize=1024  hardsect=512
+bread(major 208, minor 0, block 0, 1024)...

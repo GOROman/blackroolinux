@@ -1,0 +1,81 @@
+Blackroo serial capture 2026-08-26T14:13:16 on /dev/ttyUSB1
+------------------------------------------------------------
+
+/ $ yo
+brsh: unknown command: yo  (try 'help')
+/ $ help
+brsh builtins:
+  ls [-l] [dir]      list a directory
+  cat <file>...      print a file
+  hexdump <file>     print a file in hex
+  stat <path>        inode, mode, size, device
+  cd [dir]           change directory ('..' understood)
+  pwd                print the working directory
+  mkdir <dir>...     create directories
+  rmdir <dir>...     remove empty directories
+  rm <file>...       unlink files
+  cp <from> <to>     copy a file
+  mv <from> <to>     rename a file
+  edit <file>        line editor (p a w q, <n>, d, i)
+  ps                 the process table
+  top                memory, uptime and processes
+  df [path]          filesystem usage
+  mount <dev> <dir>  mount a filesystem
+  umount <dir>       unmount one
+  lshw               hardware, read from the registers
+  peek <addr>        read a 32-bit register
+  poke <addr> <val>  write one (no memory protection!)
+  fetch              the machine, and a kangaroo
+  echo <words>       print its arguments
+  help               this list
+  exit               leave the shell
+/ $ lshw
+cpu     MIPS R3000A, 33.8688 MHz, little-endian, no MMU
+        no FPU - the emulator is not built (NO_FPU)
+ram     reg 0x8c430888  2 MB (stock)
+gpu     stat 0x5616200b
+        video PAL 50 Hz, vres 240, display on
+        interlace off, dma dir 2
+dma     GPU CDROM 
+        dpcr 0x00008800  dicr 0x00000000
+irq     stat 0xaf020001  mask 0xafa301c0
+timers  t0 36528  t1 45941  t2 23043   (t2 is the kernel tick)
+bus     exp1 cfg 0x1f000000  bus 0x00020943
+        com delay 0x0000132c
+exp1    no cart signature at 0x1f000084
+storage /dev/bul  memory cards, major 208 (bu0..bu3 = 207)
+        /dev/psxcd  CD-ROM, major 209, read-only
+        /dev/ram0   ramdisk, major 1
+input   psxkbd on the SIO0 controller bus
+serial  SIO1 at 0x1f801050, 115200 8N1
+/ $ help
+brsh builtins:
+  ls [-l] [dir]      list a directory
+  cat <file>...      print a file
+  hexdump <file>     print a file in hex
+  stat <path>        inode, mode, size, device
+  cd [dir]           change directory ('..' understood)
+  pwd                print the working directory
+  mkdir <dir>...     create directories
+  rmdir <dir>...     remove empty directories
+  rm <file>...       unlink files
+  cp <from> <to>     copy a file
+  mv <from> <to>     rename a file
+  edit <file>        line editor (p a w q, <n>, d, i)
+  ps                 the process table
+  top                memory, uptime and processes
+  df [path]          filesystem usage
+  mount <dev> <dir>  mount a filesystem
+  umount <dir>       unmount one
+  lshw               hardware, read from the registers
+  peek <addr>        read a 32-bit register
+  poke <addr> <val>  write one (no memory protection!)
+  fetch              the machine, and a kangaroo
+  echo <words>       print its arguments
+  help               this list
+  exit               leave the shell
+/ $ df
+Filesystem       1K-blocks      Used     Avail  Mounted on
+                        99        52        47  /
+  block size 1024, inodes 32 used of 64
+/ $ 

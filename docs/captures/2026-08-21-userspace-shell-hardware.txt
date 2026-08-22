@@ -1,0 +1,361 @@
+Blackroo Linux - userspace shell (brsh) as pid 1, ON REAL HARDWARE
+==================================================================
+Captured 2026-08-21. PAL SCPH-750x, BIOS 4.1 E, 2 MB stock, modchipped,
+multitap with memory cards in port 1 floors A/C and port 2 floor A.
+
+Path:  BIOS -> kloader (CD-R) -> "Serial Shell (115200)" -> host upload of
+       output/blackroo.exe (build #52) to 0x80090000 -> boot -> BRMON ->
+       "cont" -> ext2 initrd root -> binfmt_fixed -> brsh as pid 1.
+
+Host:  tools/host/blackroo-serial.py driven from a script; PS1 SIO1 cable was
+       on /dev/ttyUSB1 (the FTDI) this session, NOT ttyUSB0 - the adapters
+       enumerate in plug order, so always confirm which one beacons.
+
+This is the hardware counterpart to 2026-08-21-userspace-shell-emulator.txt.
+Everything below is verbatim.
+
+=== UPLOAD ===
+  File:   blackroo.exe
+  Entry:  0x80090388
+  Load:   0x80090000
+  Size:   912.0 KB
+  Baud:   115200
+
+  Waiting for shell beacon (BK>>)...
+  (Select 'Serial Shell' on PS1 and press Start)
+  Beacon received! (852ms, 1 seen)
+  Sending 912.0 KB...
+
+      [progress meter elided - steady 10.4 KB/s, 0% to 100%, no retries]
+     10240 / 933888 (1%) [10.4 KB/s]
+     20480 / 933888 (2%) [10.4 KB/s]
+     28672 / 933888 (3%) [10.4 KB/s]
+     38912 / 933888 (4%) [10.4 KB/s]
+     47104 / 933888 (5%) [10.4 KB/s]
+     57344 / 933888 (6%) [10.4 KB/s]
+     65536 / 933888 (7%) [10.4 KB/s]
+     75776 / 933888 (8%) [10.4 KB/s]
+     86016 / 933888 (9%) [10.4 KB/s]
+     94208 / 933888 (10%) [10.4 KB/s]
+    104448 / 933888 (11%) [10.4 KB/s]
+    112640 / 933888 (12%) [10.4 KB/s]
+    122880 / 933888 (13%) [10.4 KB/s]
+    131072 / 933888 (14%) [10.4 KB/s]
+    141312 / 933888 (15%) [10.4 KB/s]
+    149504 / 933888 (16%) [10.4 KB/s]
+    159744 / 933888 (17%) [10.4 KB/s]
+    169984 / 933888 (18%) [10.4 KB/s]
+    178176 / 933888 (19%) [10.4 KB/s]
+    188416 / 933888 (20%) [10.4 KB/s]
+    196608 / 933888 (21%) [10.4 KB/s]
+    206848 / 933888 (22%) [10.4 KB/s]
+    215040 / 933888 (23%) [10.4 KB/s]
+    225280 / 933888 (24%) [10.4 KB/s]
+    233472 / 933888 (25%) [10.4 KB/s]
+    243712 / 933888 (26%) [10.4 KB/s]
+    253952 / 933888 (27%) [10.4 KB/s]
+    262144 / 933888 (28%) [10.4 KB/s]
+    272384 / 933888 (29%) [10.4 KB/s]
+    280576 / 933888 (30%) [10.4 KB/s]
+    290816 / 933888 (31%) [10.4 KB/s]
+    299008 / 933888 (32%) [10.4 KB/s]
+    309248 / 933888 (33%) [10.4 KB/s]
+    319488 / 933888 (34%) [10.4 KB/s]
+    327680 / 933888 (35%) [10.4 KB/s]
+    337920 / 933888 (36%) [10.4 KB/s]
+    346112 / 933888 (37%) [10.4 KB/s]
+    356352 / 933888 (38%) [10.4 KB/s]
+    364544 / 933888 (39%) [10.4 KB/s]
+    374784 / 933888 (40%) [10.4 KB/s]
+    382976 / 933888 (41%) [10.4 KB/s]
+    393216 / 933888 (42%) [10.4 KB/s]
+    403456 / 933888 (43%) [10.4 KB/s]
+    411648 / 933888 (44%) [10.4 KB/s]
+    421888 / 933888 (45%) [10.4 KB/s]
+    430080 / 933888 (46%) [10.4 KB/s]
+    440320 / 933888 (47%) [10.4 KB/s]
+    448512 / 933888 (48%) [10.4 KB/s]
+    458752 / 933888 (49%) [10.4 KB/s]
+    466944 / 933888 (50%) [10.4 KB/s]
+    477184 / 933888 (51%) [10.4 KB/s]
+    487424 / 933888 (52%) [10.4 KB/s]
+    495616 / 933888 (53%) [10.4 KB/s]
+    505856 / 933888 (54%) [10.4 KB/s]
+    514048 / 933888 (55%) [10.4 KB/s]
+    524288 / 933888 (56%) [10.4 KB/s]
+    532480 / 933888 (57%) [10.4 KB/s]
+    542720 / 933888 (58%) [10.4 KB/s]
+    552960 / 933888 (59%) [10.4 KB/s]
+    561152 / 933888 (60%) [10.4 KB/s]
+    571392 / 933888 (61%) [10.4 KB/s]
+    579584 / 933888 (62%) [10.4 KB/s]
+    589824 / 933888 (63%) [10.4 KB/s]
+    598016 / 933888 (64%) [10.4 KB/s]
+    608256 / 933888 (65%) [10.4 KB/s]
+    616448 / 933888 (66%) [10.4 KB/s]
+    626688 / 933888 (67%) [10.4 KB/s]
+    636928 / 933888 (68%) [10.4 KB/s]
+    645120 / 933888 (69%) [10.4 KB/s]
+    655360 / 933888 (70%) [10.4 KB/s]
+    663552 / 933888 (71%) [10.4 KB/s]
+    673792 / 933888 (72%) [10.4 KB/s]
+    681984 / 933888 (73%) [10.4 KB/s]
+    692224 / 933888 (74%) [10.4 KB/s]
+    700416 / 933888 (75%) [10.4 KB/s]
+    710656 / 933888 (76%) [10.4 KB/s]
+    720896 / 933888 (77%) [10.4 KB/s]
+    729088 / 933888 (78%) [10.4 KB/s]
+    739328 / 933888 (79%) [10.4 KB/s]
+    747520 / 933888 (80%) [10.4 KB/s]
+    757760 / 933888 (81%) [10.4 KB/s]
+    765952 / 933888 (82%) [10.4 KB/s]
+    776192 / 933888 (83%) [10.4 KB/s]
+    786432 / 933888 (84%) [10.4 KB/s]
+    794624 / 933888 (85%) [10.4 KB/s]
+    804864 / 933888 (86%) [10.4 KB/s]
+    813056 / 933888 (87%) [10.4 KB/s]
+    823296 / 933888 (88%) [10.4 KB/s]
+    831488 / 933888 (89%) [10.4 KB/s]
+    841728 / 933888 (90%) [10.4 KB/s]
+    849920 / 933888 (91%) [10.4 KB/s]
+    860160 / 933888 (92%) [10.4 KB/s]
+    870400 / 933888 (93%) [10.4 KB/s]
+    878592 / 933888 (94%) [10.4 KB/s]
+    888832 / 933888 (95%) [10.4 KB/s]
+    897024 / 933888 (96%) [10.4 KB/s]
+    907264 / 933888 (97%) [10.4 KB/s]
+    915456 / 933888 (98%) [10.4 KB/s]
+    925696 / 933888 (99%) [10.4 KB/s]
+    933888 / 933888 (100%) [10.4 KB/s]
+  OK: 912.0 KB in 87.5s (10.4 KB/s)
+
+  Waiting for shell beacon (BK>>)...
+  (Select 'Serial Shell' on PS1 and press Start)
+  Beacon received! (50ms, 1 seen)
+  Cmdline: brmon root=/dev/ram0 init=/bin/sh console=ttyS0,115200 console=tty0
+  Kernel launched!
+
+upload+boot returned: True
+
+=== BOOT OUTPUT ===
+
+PSX: reserving 64KB at the top of RAM for userspace
+
+PSX: 1984 KB RAM configured (reg=0x8fbf0888)
+
+Loading R[23]00 MMU routines.
+
+CPU revision is: 00000002
+
+Primary instruction cache 4kb, linesize 4 bytes
+
+Primary data cache 1kb, linesize 4 bytes
+
+Linux version 2.4.0.0pre0 (chelson@nzl1) (gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)) #52 Fri Aug 21 05:25:37 PM AEST 2026
+
+Determined physical RAM map:
+
+ memory: 001f0000 @ 00000000 (usable)
+
+initrd occupies 0x0016cff8-0x00174000, starting bootmem above it
+
+initrd found at 0x0016d000-0x00174000 (28672 bytes)
+
+hm, page 0016c000 reserved twice.
+
+hm, page 0016d000 reserved twice.
+
+hm, page 0016e000 reserved twice.
+
+hm, page 0016f000 reserved twice.
+
+hm, page 00170000 reserved twice.
+
+hm, page 00171000 reserved twice.
+
+hm, page 00172000 reserved twice.
+
+hm, page 00173000 reserved twice.
+
+hm, page 00174000 reserved twice.
+
+BLACKROO MEMORY MAP:
+
+  _ftext  = 0x00090000 (kernel code start)
+
+  _etext  = 0x001382f0 (kernel code end)
+
+  _fdata  = 0x00146150 (kernel data start)
+
+  _edata  = 0x0014d7d0 (kernel data end / BSS start)
+
+  _end    = 0x0016cd30 (BSS end)
+
+  max_pfn = 0x001f0000 (RAM end)
+
+  initrd  = 0x0016d000 - 0x00174000 (28672 bytes)
+
+  initrd data: 00 00 00 00 00 00 00 00
+
+  ext2 magic @ +0x438: 53 ef (want 53 ef)
+
+On node 0 totalpages: 496
+
+zone(0): 496 pages.
+
+zone(1): 0 pages.
+
+zone(2): 0 pages.
+
+Kernel command line: brmon root=/dev/ram0 init=/bin/sh console=ttyS0,115200 console=tty0
+
+Console: mono PSXGPU console 78x21
+
+Calibrating delay loop... 32.25 BogoMIPS
+
+Memory: 456k/1984k available (672k kernel code, 1528k reserved, 29k data, 40k init)
+
+Dentry-cache hash table entries: 512 (order: 0, 4096 bytes)
+
+Buffer-cache hash table entries: 1024 (order: 0, 4096 bytes)
+
+Page-cache hash table entries: 1024 (order: 0, 4096 bytes)
+
+Inode-cache hash table entries: 512 (order: 0, 4096 bytes)
+
+Checking for 'wait' instruction...  unavailable.
+
+POSIX conformance testing by UNIFIX
+
+Linux NET4.0 for Linux 2.4
+
+Based upon Swansea University Computer Society NET3.039
+
+binfmt_fixed: fixed-address ELF loader, window 0x001f0000..0x00200000
+
+ERROR<4>initialize_kbd: Keyboard failed self test
+
+PSX SIO console enable 
+
+RAMDISK driver initialized: 16 RAM disks of 2048K size 1024 blocksize
+
+PSX joined card: detecting card in slot 1 ...
+
+PSX joined card: 127 Kbytes card found in slot 1
+
+PSX joined card: detecting card in slot 2 ...
+
+PSX joined card: card in slot 2 not found
+
+PSX joined card: detecting card in slot 3 ...
+
+PSX joined card: 127 Kbytes card found in slot 3
+
+PSX joined card: detecting card in slot 4 ...
+
+PSX joined card: card in slot 4 not found
+
+PSX joined card: detecting card in slot 5 ...
+
+PSX joined card: 127 Kbytes card found in slot 5
+
+PSX joined card: detecting card in slot 6 ...
+
+PSX joined card: card in slot 6 not found
+
+PSX joined card: detecting card in slot 7 ...
+
+PSX joined card: card in slot 7 not found
+
+PSX joined card: detecting card in slot 8 ...
+
+PSX joined card: card in slot 8 not found
+
+PSX joined card: driver initialized: 8 cards joined, total size = 381 Kbytes
+
+BLACKROO: copying initrd 28672 bytes (28 blocks) into /dev/ram0
+
+BLACKROO: initrd in ram0, superblock magic ef53 (ext2 OK)
+
+Starting kswapd v1.8
+
+PSX serial port driver
+
+brcon: polled SIO1 console on major 60
+
+
+
+
+
+
+  ####  BLACKROO MONITOR  ####  ####  BLACKROO MONITOR  ####
+
+
+  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)  Linux 2.4.0.0pre0 on PlayStation (MIPS R3000A)
+
+
+  Type 'help' for commands, 'cont' to resume booting.  Type 'help' for commands, 'cont' to resume booting.
+
+
+
+
+
+blackroo> 
+
+=== sending 'cont' to leave BRMON ===
+contblackroo> cont
+
+
+leaving monitorleaving monitor
+
+
+RAMDISK: rd_open(minor 0)
+
+VFS: Mounted root (ext2 filesystem).
+
+Freeing unused PROM memory: 572k freed
+
+Freeing unused kernel memory: 40k freed
+
+BLACKROO: open(/dev/console) = 0
+
+
+ Blackroo Linux (MIPS MMU kernel)
+
+ ================================
+
+ Kernel:  2.4.0.0pre0 (mipsnommu)
+
+ Build:   #52 Fri Aug 21 05:25:37 PM AEST 2026
+
+ Init:    /bin/sh
+
+ Cmdline: brmon root=/dev/ram0 init=/bin/sh console=ttyS0,115200 console=tty0
+
+
+BLACKROO: exec /bin/sh ...
+
+binfmt_fixed: /bin/sh at 0x1f0000..0x1f0840, entry 0x1f03fc, stack 0x1fffb8
+
+Ubrsh: calling open(/dev/brcon)
+brcon: open by pid 1
+
+brsh: open returned 0x00000003
+brsh: calling write() on that fd
+brcon: first write, 1 bytes
+
+
+brsh: first write survived
+brsh: userspace is alive on the PlayStation.
+  argc=0x00000001 argv0=init
+  a process, not the monitor.
+
+$ 
+
+=== driving brsh ===
+help
+builtins: help, echo <x>, exit
+$ echo hardware: a real PlayStation, not an emulator
+hardware: a real PlayStation, not an emulator
+$ 
+=== END ===
