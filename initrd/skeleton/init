@@ -1,0 +1,6 @@
+#!/bin/sh
+mount -t proc none /proc 2>/dev/null
+echo ""
+echo "Blackroo Linux for PlayStation"
+echo ""
+exec /bin/sh
