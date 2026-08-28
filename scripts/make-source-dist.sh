@@ -82,7 +82,7 @@ tar -C "$HERE" -cf - \
     --exclude='elf2psexe' \
     --exclude='addpsexe_initrd' \
     --exclude='__pycache__' \
-    --exclude='build' \
+    --exclude='build' --exclude='build-native' --exclude='build-native-high' \
     --exclude='./output' \
     --exclude='./logs' \
     --exclude='./carts' \
@@ -90,6 +90,7 @@ tar -C "$HERE" -cf - \
     --exclude='*.o' --exclude='*.obj' --exclude='*.a' --exclude='*.so' \
     --exclude='*.elf' --exclude='*.exe' --exclude='*.bin' --exclude='*.img' \
     --exclude='*.iso' --exclude='*.mcd' --exclude='*.res' \
+    --exclude='offset.s' --exclude='offset.h' \
     --exclude='.*.flags' --exclude='.version' --exclude='.ver' \
     --exclude='System.map' --exclude='compile.h' --exclude='autoconf.h' \
     --exclude='modules' --exclude='config' \
@@ -120,6 +121,12 @@ done < <(find "$STAGE/$NAME" -type f -exec file {} + 2>/dev/null \
 # Nothing that names a tool, a person's home directory, or a scratch path
 # leaves this archive either. These crept back in once already: a sync from the
 # working tree overwrote files that had been cleaned, and nobody re-checked.
+# build.sh rewrites HoangFlag in place on every build, so a tree that has been
+# built carries this machine's toolchain path in it. Put the placeholder back
+# in the archive; build.sh will fill it in again on the recipient's machine.
+sed -i 's|^HoangFlag = .*|HoangFlag =\t# rewritten by build.sh to point at sdk/toolchain-*/include|' \
+    "$STAGE/$NAME/blackroo/Makefile" 2>/dev/null || true
+
 echo "==> checking for host paths and tool references"
 leak=0
 # Patterns are built at runtime rather than written out, so this script does
