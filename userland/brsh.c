@@ -194,16 +194,16 @@ static int slen(const char *s)
  *           resolves to the VT, so anything written here is drawn on the TV
  *           by psxvga_con AND mirrored out of SIO1 by do_con_write().
  *           Falls back to /dev/brcon if the tty layer will not open.
- *   infd  - /dev/brcon, always. Reading /dev/console would take input from
- *           the keyboard driver, and this port has none yet (kbd-no.c is a
- *           stub). A read there would simply never return.
+ *   infd  - /dev/brcon, always. SIO1 remains the shell input path so a host
+ *           terminal can drive the shell even when /dev/console is present.
+ *           A controller-port keyboard is a separate input path and must not
+ *           silently replace the serial input selected by the user.
  *
- * When a real keyboard arrives - PS/2 through the Pico on the card bus, or a
- * controller-port keyboard - infd moves to /dev/console too and the machine
- * stops needing a host PC at all.
+ * A controller-port keyboard can still be used through /dev/console by a
+ * future input-selection policy; it must not change the SIO1 behavior here.
  */
 static int outfd = 1;		/* /dev/console, or /dev/brcon as fallback */
-static int infd  = 0;		/* the same console, or /dev/brcon as fallback */
+static int infd  = 0;		/* /dev/brcon (SIO1) */
 
 static void out(const char *s)
 {
@@ -1951,9 +1951,9 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * Now the console, for both directions: output to the GPU, input from
-	 * the keyboard. If it will not open we simply stay on serial - a shell
-	 * on the wire is far better than no shell.
+	 * Now the console for output to the GPU. Input deliberately remains on
+	 * /dev/brcon: opening /dev/console must not disable SIO1 input. If the
+	 * console will not open, we simply stay on serial.
 	 */
 	raw_out("brsh: calling open(/dev/console)\n");
 	confd = (int)sys3(SYS_open, (long)"/dev/console", 2 /* O_RDWR */, 0);
@@ -1964,7 +1964,6 @@ int main(int argc, char **argv)
 		raw_out("brsh: no /dev/console - serial only\n");
 	} else {
 		outfd = confd;
-		infd = confd;
 	}
 
 	raw_out("brsh: calling write() on that fd\n");
@@ -1987,10 +1986,8 @@ int main(int argc, char **argv)
 	 *     init=/bin/sh mkfs /dev/bul yes
 	 *
 	 * runs that command before the prompt appears. Input here comes from
-	 * /dev/console - the keyboard - so without this there is no way to
-	 * drive the shell from the other end of the serial cable, and every
-	 * test has to be typed on the console itself. Output already goes both
-	 * ways, so the result comes back over the wire either way.
+	 * /dev/brcon (SIO1), while output is mirrored through /dev/console and
+	 * therefore comes back over the serial cable as well.
 	 */
 	if (argc > 1) {
 		char cmd[256];
