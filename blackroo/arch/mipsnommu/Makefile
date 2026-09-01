@@ -37,8 +37,9 @@ endif
 # machines may also.  Since BFD is incredibly buggy with respect to
 # crossformat linking we rely on the elf2ecoff tool for format conversion.
 #
-GCCFLAGS	:= -G 0 -mno-abicalls -fno-pic
-LINKFLAGS	+= -static -G 0
+GCCFLAGS	:= -G 0 -mno-abicalls -fno-pic -EL
+LINKFLAGS	+= -static -G 0 -EL
+EXTRA_LDFLAGS	+= -EL
 MODFLAGS	+= -mlong-calls
 
 ifdef CONFIG_REMOTE_DEBUG

@@ -82,7 +82,8 @@ tar -C "$HERE" -cf - \
     --exclude='elf2psexe' \
     --exclude='addpsexe_initrd' \
     --exclude='__pycache__' \
-    --exclude='build' --exclude='build-native' --exclude='build-native-high' \
+    --exclude='./build' --exclude='build' \
+    --exclude='build-native' --exclude='build-native-high' \
     --exclude='./output' \
     --exclude='./logs' \
     --exclude='./carts' \
@@ -124,8 +125,13 @@ done < <(find "$STAGE/$NAME" -type f -exec file {} + 2>/dev/null \
 # build.sh rewrites HoangFlag in place on every build, so a tree that has been
 # built carries this machine's toolchain path in it. Put the placeholder back
 # in the archive; build.sh will fill it in again on the recipient's machine.
-sed -i 's|^HoangFlag = .*|HoangFlag =\t# rewritten by build.sh to point at sdk/toolchain-*/include|' \
-    "$STAGE/$NAME/blackroo/Makefile" 2>/dev/null || true
+if [ "$(uname -s)" = "Darwin" ]; then
+    sed -i '' 's|^HoangFlag = .*|HoangFlag =\t# rewritten by build.sh to point at sdk/toolchain-*/include|' \
+        "$STAGE/$NAME/blackroo/Makefile" 2>/dev/null || true
+else
+    sed -i 's|^HoangFlag = .*|HoangFlag =\t# rewritten by build.sh to point at sdk/toolchain-*/include|' \
+        "$STAGE/$NAME/blackroo/Makefile" 2>/dev/null || true
+fi
 
 echo "==> checking for host paths and tool references"
 leak=0

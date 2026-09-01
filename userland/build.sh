@@ -19,6 +19,13 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TC="${PSN00BSDK_ROOT:-$HOME/projects/toolchains/psn00bsdk/sdk/PSn00bSDK-0.24-Linux}/bin"
 CC="$TC/mipsel-none-elf-gcc"
 
+# A PSn00bSDK container may have produced brsh already; allow the host-side
+# initrd assembly to reuse that verified MIPS binary without rebuilding it.
+if [ "${SKIP_USERLAND_BUILD:-}" = 1 ] && [ -x "$HERE/brsh" ]; then
+    echo "  reusing existing $HERE/brsh"
+    exit 0
+fi
+
 [ -x "$CC" ] || { echo "no mipsel-none-elf-gcc at $CC"; exit 1; }
 
 # ── the load address must match the kernel's reserved window ────────────────
@@ -58,7 +65,7 @@ echo "  window: ${RESERVE_KB} KB at $WANT_BASE .. $(printf 0x%08x $RAM_TOP)  [$D
 for src in "$@"; do
     name="$(basename "$src" .c)"
     echo "  $src -> $name"
-    "$CC" -O2 -G0 -mips1 -mno-abicalls -fno-pic -fno-builtin \
+    "$CC" -O2 -G0 -mips1 -EL -mno-abicalls -fno-pic -fno-builtin \
           -nostdlib -nostartfiles -ffreestanding \
           -Wl,-T,"$HERE/blackroo.ld" \
           -o "$HERE/$name" "$HERE/$src"

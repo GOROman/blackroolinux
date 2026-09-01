@@ -12,7 +12,6 @@
 #
 unexport EXTRA_AFLAGS
 unexport EXTRA_CFLAGS
-unexport EXTRA_LDFLAGS
 unexport EXTRA_ARFLAGS
 unexport SUBDIRS
 unexport SUB_DIRS

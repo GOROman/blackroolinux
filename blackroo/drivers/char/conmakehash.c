@@ -14,8 +14,8 @@
  * version 2, or at your option any later version.
  */
 
-#include </usr/include/stdio.h>
-#include </usr/include/stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
 #include <ctype.h>
