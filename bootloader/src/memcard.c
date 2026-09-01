@@ -68,18 +68,14 @@ static void resume_pad(void) {
 /*
  * Settling loops after asserting /JOYn.
  *
- * This was 2000 iterations, which is a few hundred microseconds. The kernel
- * driver needed a full 2 ms here before a multitap would answer reliably - a
- * fault found only because enabling its debug printks made detection start
- * working, the print latency supplying the delay that was missing. A tap needs
- * real time after select; a card straight in the port does not care.
+ * A direct card only needs a short settling delay. The longer multitap delay
+ * is intentionally not used here: the boot menu supports the two console
+ * ports, not a four-floor multitap scan.
  */
-#define SIO0_SETTLE_LOOPS   80000
+#define SIO0_SETTLE_LOOPS   16000
 
-/* A gap between transactions. Probing a tap back to back succeeded on floors
- * 0 and 2 and failed on 1 and 3 - a perfect alternation, with all four cards
- * known good. The tap is still busy when the next select arrives. */
-#define SIO0_GAP_LOOPS      160000
+/* Short gap between the two direct-port probes. */
+#define SIO0_GAP_LOOPS      32000
 
 static void sio0_gap(void) {
     volatile int i;
@@ -142,7 +138,7 @@ static int sio0_xfer(uint8_t tx) {
     int timeout;
 
     /* Wait for TX ready — short timeout */
-    timeout = 50000;
+    timeout = 12000;
     while (!(SIO0_STAT & SIO0_STAT_TXRDY)) {
         if (--timeout <= 0) return -1;
     }
@@ -151,7 +147,7 @@ static int sio0_xfer(uint8_t tx) {
     SIO0_DATA = tx;
 
     /* Wait for RX response — short timeout */
-    timeout = 50000;
+    timeout = 12000;
     while (!(SIO0_STAT & SIO0_STAT_RXRDY)) {
         if (--timeout <= 0) return -1;
     }
@@ -381,14 +377,8 @@ int memcard_read_header(int slot, blackroo_card_header_t *hdr) {
 /* -------------------------------------------------------------- */
 
 /*
- * Eight slots, not two.
- *
- * The old version knew about "Card 1" and "Card 2" - the two console ports -
- * and could not see anything behind a multitap, which is where this project's
- * cards actually live. It now walks all four floors of both ports, using the
- * same numbering as the kernel so a slot means the same thing everywhere:
- * BRMON's `card format 5`, /dev/bul's fifth card and "port 2 A" here are one
- * and the same.
+ * Two direct-port cards only. Slot 0 is port 1 A and slot 4 is port 2 A;
+ * multitap floors are intentionally not scanned.
  *
  * Formatting writes the Blackroo header (id 0x1234) that bu.c requires before
  * it will claim a card at all - a stock Sony card reads as "not found" by
@@ -398,25 +388,29 @@ int memcard_read_header(int slot, blackroo_card_header_t *hdr) {
 static int mc_present[MC_SLOTS];
 static int mc_blackroo[MC_SLOTS];
 static int mc_number[MC_SLOTS];
+static const int mc_visible_slots[2] = { 0, 4 };
 
 static void mc_scan(void) {
-    int i;
+    int i, slot;
 
-    for (i = 0; i < MC_SLOTS; i++) {
-        mc_present[i] = memcard_detect(i);
-        mc_blackroo[i] = 0;
-        mc_number[i] = -1;
+    memset(mc_present, 0, sizeof(mc_present));
+    memset(mc_blackroo, 0, sizeof(mc_blackroo));
+    for (i = 0; i < 2; i++) {
+        slot = mc_visible_slots[i];
+        mc_present[slot] = memcard_detect(slot);
+        mc_blackroo[slot] = 0;
+        mc_number[slot] = -1;
 
-        if (mc_present[i]) {
+        if (mc_present[slot]) {
             blackroo_card_header_t hdr;
 
-            if (memcard_read_header(i, &hdr) == 0 && hdr.id == BU_ID) {
-                mc_blackroo[i] = 1;
-                mc_number[i] = (int)hdr.number;
+            if (memcard_read_header(slot, &hdr) == 0 && hdr.id == BU_ID) {
+                mc_blackroo[slot] = 1;
+                mc_number[slot] = (int)hdr.number;
             }
         }
 
-        sio0_gap();   /* a tap is still busy when the next select arrives */
+        sio0_gap();
     }
 }
 
@@ -510,15 +504,16 @@ void memcard_manager_menu(void) {
         FntPrint(0, "  ===================\n\n");
 
         total = 0;
-        for (i = 0; i < MC_SLOTS; i++) {
+        for (i = 0; i < 2; i++) {
+            int slot = mc_visible_slots[i];
             FntPrint(0, "  %s %d %-9s ",
                      selected == i ? ">" : " ", i + 1,
-                     memcard_slot_name(i));
+                     memcard_slot_name(slot));
 
-            if (!mc_present[i]) {
+            if (!mc_present[slot]) {
                 FntPrint(0, "-\n");
-            } else if (mc_blackroo[i]) {
-                FntPrint(0, "128K  Blackroo #%d\n", mc_number[i]);
+            } else if (mc_blackroo[slot]) {
+                FntPrint(0, "128K  Blackroo #%d\n", mc_number[slot]);
                 total += 127;
             } else {
                 FntPrint(0, "128K  not formatted\n");
@@ -545,7 +540,7 @@ void memcard_manager_menu(void) {
 
             if ((pressed & PAD_UP) && selected > 0)
                 selected--;
-            if ((pressed & PAD_DOWN) && selected < MC_SLOTS - 1)
+            if ((pressed & PAD_DOWN) && selected < 1)
                 selected++;
 
             if (pressed & PAD_SELECT)
@@ -556,23 +551,24 @@ void memcard_manager_menu(void) {
                 prev_buttons = 0;
             }
 
-            if ((pressed & PAD_CIRCLE) && mc_present[selected]) {
-                mc_show_block(selected);
-                prev_buttons = 0;
-            }
-
-            if ((pressed & (PAD_START | PAD_CROSS)) && mc_present[selected]) {
-                if (mc_confirm_format(selected)) {
-                    /* The slot index is the RAID sequence number: distinct
-                     * per card, which is what bu.c needs. */
-                    if (memcard_format(selected, selected) == 0) {
-                        mc_blackroo[selected] = 1;
-                        mc_number[selected] = selected;
-                    } else {
-                        mc_blackroo[selected] = 0;
-                    }
+            {
+                int slot = mc_visible_slots[selected];
+                if ((pressed & PAD_CIRCLE) && mc_present[slot]) {
+                    mc_show_block(slot);
+                    prev_buttons = 0;
                 }
-                prev_buttons = 0;
+
+                if ((pressed & (PAD_START | PAD_CROSS)) && mc_present[slot]) {
+                    if (mc_confirm_format(slot)) {
+                        if (memcard_format(slot, slot) == 0) {
+                            mc_blackroo[slot] = 1;
+                            mc_number[slot] = slot;
+                        } else {
+                            mc_blackroo[slot] = 0;
+                        }
+                    }
+                    prev_buttons = 0;
+                }
             }
         }
     }
