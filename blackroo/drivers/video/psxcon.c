@@ -124,8 +124,8 @@ static void psxvga_set_vrange (unsigned long mode)
  *
  * kloader writes it there from whatever mode the user left its menu on. With
  * no such argument - a kernel booted by hand, or by an older kloader - fall
- * back to what this driver did before: PAL, and the width that
- * CONFIG_VT_CONSOLE_HIRES used to select.
+ * back to NTSC, the native video standard of the SCPH-3500 target, and the
+ * width that CONFIG_VT_CONSOLE_HIRES used to select.
  */
 static unsigned long psxvga_setup_mode (void)
 {
@@ -139,8 +139,8 @@ static unsigned long psxvga_setup_mode (void)
 #else
    w = 320;
 #endif
-   h = 256;
-   rate = 50;
+   h = 240;
+   rate = 60;
 
    p = strstr (saved_command_line, "psxvideo=");
    if (p) {
@@ -565,6 +565,5 @@ EXPORT_SYMBOL(psxvga_redraw_bmove);
 EXPORT_SYMBOL(psxvga_redraw_clear);
 EXPORT_SYMBOL(psxvga_dummy);
 EXPORT_SYMBOL(psxvga_con);
-
 
 
