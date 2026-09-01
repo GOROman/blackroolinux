@@ -87,7 +87,9 @@ cmd_deps() {
         fail=1
     fi
 
-    if [ -f /lib/ld-linux.so.2 ] || [ -f /lib32/ld-linux.so.2 ] || ldconfig -p 2>/dev/null | grep -q ld-linux.so.2; then
+    if [ "$(uname -s)" = "Darwin" ] && [ -x "$TC_BIN/mipsel-linux-gcc" ]; then
+        ok "macOS-native EGCS toolchain (no Linux loader needed)"
+    elif [ -f /lib/ld-linux.so.2 ] || [ -f /lib32/ld-linux.so.2 ] || ldconfig -p 2>/dev/null | grep -q ld-linux.so.2; then
         ok "32-bit loader present"
     else
         err "32-bit loader missing -> sudo apt install libc6:i386"; fail=1
@@ -103,13 +105,18 @@ cmd_deps() {
 build_host_tools() {
     info "Building host tools (native gcc)..."
     ( unset GCC_EXEC_PREFIX
-      gcc -O2 -Wall -o "$TOOLS_DIR/elf2psexe"       "$TOOLS_DIR/elf2psexe.c"
-      gcc -O2 -Wall -o "$TOOLS_DIR/addpsexe_initrd" "$TOOLS_DIR/addpsexe_initrd.c"
-      gcc -O2 -Wall -o "$TOOLS_DIR/host/mkmemcard"  "$TOOLS_DIR/host/mkmemcard.c"
+    # elf2psexe needs Linux's <elf.h>; on macOS it is prebuilt in the
+    # Docker/Linux host-tools step. Keep a valid existing binary there.
+    if [ ! -x "$TOOLS_DIR/elf2psexe" ]; then
+        gcc -O2 -Wall -o "$TOOLS_DIR/elf2psexe" "$TOOLS_DIR/elf2psexe.c"
+    fi
+    [ -x "$TOOLS_DIR/addpsexe_initrd" ] || gcc -O2 -Wall -o "$TOOLS_DIR/addpsexe_initrd" "$TOOLS_DIR/addpsexe_initrd.c"
+    [ -x "$TOOLS_DIR/host/mkmemcard" ] || gcc -O2 -Wall -o "$TOOLS_DIR/host/mkmemcard" "$TOOLS_DIR/host/mkmemcard.c"
       # kernel-internal host helpers
-      ( cd "$KERNEL_DIR" && gcc -o scripts/mkdep scripts/mkdep.c \
-                         && gcc -o scripts/split-include scripts/split-include.c \
-                         && [ -f drivers/char/conmakehash.c ] && gcc -O2 -o drivers/char/conmakehash drivers/char/conmakehash.c )
+    ( cd "$KERNEL_DIR" && \
+      [ -x scripts/mkdep ] || gcc -o scripts/mkdep scripts/mkdep.c; \
+      [ -x scripts/split-include ] || gcc -o scripts/split-include scripts/split-include.c; \
+      if [ -f drivers/char/conmakehash.c ] && [ ! -x drivers/char/conmakehash ]; then gcc -O2 -o drivers/char/conmakehash drivers/char/conmakehash.c; fi )
     )
     ok "Host tools built (tools/elf2psexe, tools/addpsexe_initrd, tools/host/mkmemcard)"
 }
@@ -181,7 +188,11 @@ setup_config() {
     # toolchain include path patched into the Makefile.
     ( cd "$KERNEL_DIR"
       [ -L include/asm ] || ln -sf asm-mipsnommu include/asm
-      sed -i "s|^HoangFlag.*=.*|HoangFlag = -I${TC_LIB}/include -I${SDK_DIR}/include|" Makefile 2>/dev/null || true
+      if [ "$(uname -s)" = "Darwin" ]; then
+          sed -i '' "s|^HoangFlag.*=.*|HoangFlag = -I${TC_LIB}/include -I${SDK_DIR}/include|" Makefile
+      else
+          sed -i "s|^HoangFlag.*=.*|HoangFlag = -I${TC_LIB}/include -I${SDK_DIR}/include|" Makefile
+      fi
     )
     ok "Config staged (serial console + initrd + ramdisk + RAID all enabled)"
 }
