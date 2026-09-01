@@ -52,7 +52,13 @@ fi
 
 TC_BIN="$SDK_DIR/bin"
 TC_LIB="$SDK_DIR/lib/gcc-lib/mipsel-linux/egcs-2.91.66"
-export GCC_EXEC_PREFIX="$SDK_DIR/lib/gcc-lib/"
+if [ "$(uname -s)" = "Darwin" ]; then
+    # The macOS-native fallback is GCC 12.3 (mipsel-none-elf). Its cc1 and
+    # libraries live under the compiler's own prefix, not the old EGCS tree.
+    unset GCC_EXEC_PREFIX
+else
+    export GCC_EXEC_PREFIX="$SDK_DIR/lib/gcc-lib/"
+fi
 
 # Which kernel config to start from: 8mb | 2mb | auto  (override: DEFCONFIG=...)
 # The target console is a 2 MB stock SCPH-750x (docs/21-TARGET-CONSOLE.md);
