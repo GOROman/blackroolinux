@@ -172,10 +172,15 @@ static void sio_console_write(struct console *co, const char *msgbuf,
 		if( sio_ready(SIO_RFW)<0 ) 
 			goto fend;
 			     
-      outb( msgbuf[i], SIO_DATA_REG );
+		/* Send terminal newlines as CRLF.  The old LFCR order makes
+		 * serial terminals and the M5Stack bridge interpret one line
+		 * ending inconsistently, which can appear as a blank line. */
 		if (msgbuf[i] == 0x0a) {
-			sio_ready(SIO_RFW); 
-	    outb( 0x0d, SIO_DATA_REG );
+			outb( 0x0d, SIO_DATA_REG );
+			sio_ready(SIO_RFW);
+			outb( msgbuf[i], SIO_DATA_REG );
+		} else {
+			outb( msgbuf[i], SIO_DATA_REG );
 	    
 		}
 
