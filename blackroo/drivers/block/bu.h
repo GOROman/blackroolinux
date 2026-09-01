@@ -6,26 +6,10 @@
 #define BU_BLK_SIZE     (128)
 #define BU_BLK_SHIFT    (7)
 #define BU_FIRST_BLOCKS (8)
-/*
- * BLACKROO 2026-08-21: multitap support.
- *
- * Was 2 — the console's two direct card ports, with the tap sub-port ("floor")
- * hardcoded to 0. A multitap addresses its four sub-ports with card address
- * bytes 0x81/0x82/0x83/0x84, which bu_rd_state0() already emits as
- * "0x81 + floor"; nothing ever set floor.
- *
- * Verified on real hardware with the monitor's polled probe (sio0 0 81 / 82):
- * both answer FLAG 08, ID 5A 5D, ACK on every byte.
- *
- * Minor number now encodes both: minor = (port << 2) | floor.
- *   minors 0-3 = port 1, tap sub-ports A-D
- *   minors 4-7 = port 2, tap sub-ports A-D
- * A card plugged directly into a port is sub-port A, i.e. minors 0 and 4,
- * so the old direct-slot behaviour still works.
- */
-#define BU_MINORS       (8)
-#define BU_PORT(minor)  (((minor) >> 2) & 1)
-#define BU_FLOOR(minor) ((minor) & 3)
+/* Directly connected cards only: one card on each of the two SIO0 ports. */
+#define BU_MINORS       (2)
+#define BU_PORT(card)   ((card) & 1)
+#define BU_FLOOR(card)  (0)
 #define BU_BSIZE        (1024)
 #define BU_HARDSECSIZE  (512)
 #define BU_RAHEAD       (2)
