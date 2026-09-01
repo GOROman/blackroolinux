@@ -14,7 +14,7 @@
 HardwareSerial PS1Serial(1);
 static bool pending_cr = false;
 static int16_t line_y = 0;
-static constexpr int16_t margin = 8;
+static constexpr int16_t margin = 0;
 static constexpr int16_t line_height = 12;
 
 static void clear_screen()
@@ -70,7 +70,7 @@ void setup()
     auto cfg = M5.config();
     M5.begin(cfg);
     M5.Display.setRotation(1);
-    M5.Display.setTextColor(WHITE, BLACK);
+    M5.Display.setTextColor(0xADFF2F, BLACK);  // GreenYellow on black
     M5.Display.setTextSize(1);
     clear_screen();
     M5.Display.println("PS1 SIO1 bridge");
