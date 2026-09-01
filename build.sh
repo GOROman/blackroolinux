@@ -190,6 +190,9 @@ setup_config() {
       [ -L include/asm ] || ln -sf asm-mipsnommu include/asm
       if [ "$(uname -s)" = "Darwin" ]; then
           sed -i '' "s|^HoangFlag.*=.*|HoangFlag = -I${TC_LIB}/include -I${SDK_DIR}/include|" Makefile
+          # GCC 12 no longer accepts the legacy -mcpu=r3000 spelling.
+          # mips1 is the matching ISA/tuning target for the PS1 CPU.
+          sed -i '' 's/-mcpu=r3000/-mtune=mips1/g' arch/mipsnommu/Makefile
       else
           sed -i "s|^HoangFlag.*=.*|HoangFlag = -I${TC_LIB}/include -I${SDK_DIR}/include|" Makefile
       fi
