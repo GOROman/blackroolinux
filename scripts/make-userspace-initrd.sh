@@ -65,7 +65,7 @@ printf 'Blackroo Linux 0.5.0 "Rootstock26"\nroot: /dev/ram0 - initrd\nbuilt: %s\
 echo "==> mke2fs (revision 0, no features — 2.4 ext2 reads nothing newer)"
 mkdir -p "$HERE/output"
 rm -f "$IMG"
-mke2fs -q -F -E revision=0 -b 1024 -N 48 -I 128 "$IMG" "$BLOCKS"
+mke2fs -q -F -r 0 -b 1024 -N 48 -I 128 "$IMG" "$BLOCKS"
 
 echo "==> populating with debugfs"
 cmds="$(mktemp)"

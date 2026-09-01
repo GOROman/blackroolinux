@@ -119,9 +119,9 @@ else
     echo "  Licence: $(basename "$LICENSE")"
 fi
 
-"$MKPSXISO" -y -q -L "$LICENSE" blackroo_direct_cd.xml
+"$MKPSXISO" -y -q -l BLACKROO blackroo_direct_cd.xml
 echo "  -> output/blackroo.bin + .cue         (BIOS -> KERNEL.EXE -> serial monitor)"
-"$MKPSXISO" -y -q -L "$LICENSE" blackroo_cd.xml
+"$MKPSXISO" -y -q -l BLACKROO blackroo_cd.xml
 echo "  -> output/blackroo-kloader.bin + .cue (BIOS -> BLACKROO.EXE, kloader menu)"
 echo ""
 

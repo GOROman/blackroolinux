@@ -14,7 +14,7 @@ TOPDIR	:= $(shell if [ "$$PWD" != "" ]; then echo $$PWD; else pwd; fi)
 
 HPATH   	= $(TOPDIR)/include 
 FINDHPATH	= $(HPATH)/asm $(HPATH)/linux $(HPATH)/scsi $(HPATH)/net 
-HoangFlag =	# rewritten by build.sh to point at sdk/toolchain-*/include
+HoangFlag =\t# rewritten by build.sh to point at sdk/toolchain-*/include
 # Blackroo: unset GCC_EXEC_PREFIX for host compiler to avoid cross-compiler interference
 HOSTCC  	= env -u GCC_EXEC_PREFIX /usr/bin/gcc
 HOSTCFLAGS	= -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
@@ -43,7 +43,7 @@ PERL		= perl
 
 export	VERSION PATCHLEVEL SUBLEVEL EXTRAVERSION KERNELRELEASE ARCH \
 	CONFIG_SHELL TOPDIR HPATH HOSTCC HOSTCFLAGS CROSS_COMPILE AS LD CC \
-	CPP AR NM STRIP OBJCOPY OBJDUMP MAKE MAKEFILES GENKSYMS MODFLAGS PERL
+	CPP AR NM STRIP OBJCOPY OBJDUMP MAKE MAKEFILES GENKSYMS MODFLAGS PERL EXTRA_LDFLAGS
 
 .PHONY: dummy
 
@@ -331,9 +331,10 @@ newversion:
 	fi
 
 include/linux/compile.h: $(CONFIGURATION) include/linux/version.h newversion
-	@echo -n \#define UTS_VERSION \"\#`cat .version` > .ver
-	@if [ -n "$(CONFIG_SMP)" ] ; then echo -n " SMP" >> .ver; fi
-	@if [ -f .name ]; then  echo -n \-`cat .name` >> .ver; fi
+	@printf '%s' '#define UTS_VERSION "#' > .ver
+	@cat .version >> .ver
+	@if [ -n "$(CONFIG_SMP)" ] ; then printf '%s' " SMP" >> .ver; fi
+	@if [ -f .name ]; then  printf '%s' "-`cat .name`" >> .ver; fi
 	@echo ' '`date`'"' >> .ver
 	@echo \#define LINUX_COMPILE_TIME \"`date +%T`\" >> .ver
 	@echo \#define LINUX_COMPILE_BY \"`whoami`\" >> .ver

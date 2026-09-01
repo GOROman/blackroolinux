@@ -52,7 +52,7 @@ printf 'Blackroo Linux 0.5.0 "Rootstock26"\nroot: /dev/psxcd - ROOT.IMG on this 
 echo "==> mke2fs -b $BS (revision 0), $BLOCKS blocks = $((BLOCKS*BS/1024)) KB"
 mkdir -p "$HERE/output"
 rm -f "$IMG"
-mke2fs -q -F -E revision=0 -b "$BS" -N 64 -I 128 "$IMG" "$BLOCKS"
+mke2fs -q -F -r 0 -b "$BS" -N 64 -I 128 "$IMG" "$BLOCKS"
 
 echo "==> populating with debugfs"
 cmds="$(mktemp)"
