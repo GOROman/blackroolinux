@@ -27,10 +27,13 @@ static void clear_screen()
 static void new_line()
 {
     line_y += line_height;
-    if (line_y + line_height >= M5.Display.height())
-        clear_screen();
-    else
-        M5.Display.setCursor(margin, line_y);
+    if (line_y + line_height >= M5.Display.height()) {
+        /* Keep the terminal history visible instead of clearing the LCD. */
+        M5.Display.scroll(0, line_height);
+        line_y = M5.Display.height() - line_height;
+        M5.Display.fillRect(0, line_y, M5.Display.width(), line_height, BLACK);
+    }
+    M5.Display.setCursor(margin, line_y);
 }
 
 static void put_ps1_char(uint8_t c)
